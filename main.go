@@ -1,105 +1,34 @@
 package main
+// =====================================================================
+// 				Imports
+// =====================================================================
+// Import built-in packages
+import (
+	"fmt"        // used for outputting to the terminal
+	"time"       // used for pausing, measuring duration, etc
+	"math/rand"  // random number generator
+)
 
-//imported for logging if something went wrong
-import "fmt"
-import "math/rand"
-
-//imported for logg
-//imported to keep the windoing if something went wrong and to exit program if there was a problem
-import "os"
-import "time"
-
-//imported to use sdl2
+// Import external packages
+// https://github.com/veandco/go-sdl2
+// https://markkeeley.xyz/2016/go-sdl2-lesson-1/
 import "github.com/veandco/go-sdl2/sdl"
 
 
-var event sdl.Event
-
-// Made so we can initialize everything in initialize_graphics() and send this struct back
-// as the result
-type Graphics struct {
-	window *sdl.Window
-	screen *sdl.Surface
-}
-
-func (this Graphics) ClearScreen() {  
-    this.screen.FillRect(nil, sdl.MapRGB(this.screen.Format, 0xff, 0xff, 0xff));
-}
-
-
-
-// Loads SDL2
-// This is used to:
-// - create a window
-// - draw on the window
-// - clear window
-//
-// https://github.com/veandco/go-sdl2
-// https://markkeeley.xyz/2016/go-sdl2-lesson-1/
-
-func initialize_graphics() Graphics {
-	// try to initialize everything
-	err := sdl.Init(sdl.INIT_EVERYTHING)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to initialize sdl: %s\n", err)
-		os.Exit(1)
-	}
-
-	// try to create a window
-	window, err := sdl.CreateWindow("Go + SDL2 Lesson 1", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-		640, 480, sdl.WINDOW_SHOWN)
-	if err != nil {
-		fmt.Fprint(os.Stderr, "Failed to create renderer: %s\n", err)
-		os.Exit(2)
-	}
-
-	// window has been created, now need to get the window surface to draw on window
-	screenSurface, err := window.GetSurface()
-	if err != nil {
-		fmt.Fprint(os.Stderr, "Failed to create surface: %s\n", err)
-		os.Exit(2)
-	}
-
-	return Graphics{window, screenSurface}
-}
-
-func CreateRectGrid() [48][64]sdl.Rect {
-	// make color and rect grid
-	//var color_grid [48][64][3]int
-	var rect_grid [48][64] sdl.Rect
-	//fmt.Println(grid)
-
-	var x int32 = 0
-	var y int32 = 0
-
-	for row := 0; row < 48; row++ {
-		for col := 0; col < 64; col++ {
-			// color_grid[row][col][0] = rand.Intn(255)
-			// color_grid[row][col][1] = rand.Intn(255)
-			// color_grid[row][col][2] = rand.Intn(255)
-
-			rect_grid[row][col] = sdl.Rect{x, y, 10, 10}
-			x += 10
-		}
-		x = 0
-		y += 10
-	}
-
-	return rect_grid
-}
-
-
+// subpackages
+import (
+	"go_sdl2/graphicsx"
+	"go_sdl2/world"
+)
 
 func main() {
-	// Load SDL2 
-	// https://github.com/veandco/go-sdl2
-	// https://markkeeley.xyz/2016/go-sdl2-lesson-1/
-	graphics := initialize_graphics()
-	var screenSurface = graphics.screen
-	var window = graphics.window
+	// Load SDL2, and get window and screen
+	graphics := graphicsx.Initialize_graphics()
+	var screenSurface = graphics.Screen
+	var window = graphics.Window
 
 	// Create grid of cells (just the rects for now)
-	var rect_grid = CreateRectGrid()
+	var rect_grid = world.CreateRectGrid()
 
 	// Draw loop
 	var running = true
