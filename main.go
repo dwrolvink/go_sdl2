@@ -53,8 +53,8 @@ func main() {
 	// Define variables outside of loop, so that we don't have to recreate
 	// them every iteration.
 	var event sdl.Event
-	var r_col int32
-	var r_row int32
+	var r_col int
+	var r_row int
 
 	// Define variables outside of loop that we want to increment/decrement
 	// every iteration
@@ -100,7 +100,7 @@ func main() {
 		// 4: angle in degrees. 5: point which the image rotates around 
 		// 6: sdl.FLIP_NONE, sdl.FLIP_HORIZONTAL, sdl.SDL_FLIP_VERTICAL
 		// Want to combine flips? Use, for example: sdl.FLIP_HORIZONTAL | sdl.SDL_FLIP_VERTICAL
-		renderer.CopyEx(cat_icon.Texture, nil, sdl.Rect{300, 200, cat_icon.Width, cat_icon.Height}, angle, nil, sdl.FLIP_HORIZONTAL)
+		renderer.CopyEx(cat_icon.Texture, nil, &sdl.Rect{300, 200, cat_icon.Width, cat_icon.Height}, angle, nil, sdl.FLIP_HORIZONTAL)
 
 		// Draw Screen
 		// The rects have been drawn, now it is time to tell the renderer to show
