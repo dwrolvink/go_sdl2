@@ -20,27 +20,37 @@ import (
 	"go_sdl2/config"
 )
 
+// =====================================================================
+// 				Struct: Image
+// =====================================================================
+
+// Tidy little package to contain one loaded image
+type Image struct {
+	Texture *sdl.Texture
+	Width int32
+	Height int32
+}
 
 // =====================================================================
 // 				Struct: Graphics
 // =====================================================================
 
 // Make a struct so we can initialize everything in initialize_graphics() and send this 
-// struct back as the result
+// struct back as the result to the main function
 
 type Graphics struct {
-	Window *sdl.Window
-	//Screen *sdl.Surface
-	Renderer *sdl.Renderer
-	Images []Image
+	Window *sdl.Window           // Literally the Window object
+	Renderer *sdl.Renderer       // Uses hardware acceleration to write to the window
+	Images []Image               // Slice of image objects
 }
 
 // Add a function to the struct. We'll be able to call it like so:
-//		var graph = Graphics{window, screenSurface}
-//		graph.ClearScreen()
+//		var graph = Graphics{window, renderer, []{}}     
+//		graph.LoadImage("path/to/image.png")
+// []{} is an empty slice. We'll add images to it using this function.
 
 func (this *Graphics) LoadImage(path string) {  
-	// Create surface, this is needed to create the optimized **texture**
+	// Create a "surface" (this is needed to create the optimized "texture")
     surfaceImg, err := img.Load(path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load PNG: %s\n", err)
@@ -50,39 +60,30 @@ func (this *Graphics) LoadImage(path string) {
 	// Make Image struct to save the image info in
 	var image = Image{}
 
-	// This is for getting the Width and Height of surfaceImg. Once surfaceImg.Free() is called we lose the
-	// ability to get information about the image we loaded into ram
+	// This is for getting the Width and Height of surfaceImg. 
+	// Once surfaceImg.Free() is called we lose the ability to get 
+	// information about the image we loaded into ram
 	image.Width = surfaceImg.W
 	image.Height = surfaceImg.H	
 
-	// Take the surfaceImg and use it to create a hardware accelerated textureImg. Or in other words take the image
-	// sitting in ram and put it onto the graphics card.
+	// Take the surfaceImg and use it to create a hardware accelerated 
+	// textureImg. Or in other words take the image sitting in ram and 
+	// put it onto the graphics card.
 	textureImg, err := this.Renderer.CreateTextureFromSurface(surfaceImg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create texture: %s\n", err)
 		os.Exit(5)
 	}
-	// We have the image now as a texture so we no longer have need for surface. Time to let it go
+	// We have the image now as a texture so we no longer have need for 
+	// the surface. This will clean it up.
 	surfaceImg.Free()	
 
-	// save to struct
+	// save texture to struct
 	image.Texture = textureImg
 
-	// add image to graphics.Images
+	// add image to the graphics.Images slice
 	this.Images = append(this.Images, image)
 }
-
-// =====================================================================
-// 				Struct: Image
-// =====================================================================
-
-type Image struct {
-	Texture *sdl.Texture
-	Width int32
-	Height int32
-}
-
-
 
 
 // =====================================================================

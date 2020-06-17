@@ -26,8 +26,12 @@ func main() {
 
 	// Load SDL2, and get window and renderer.
 	// See the file graphicsx/graphicsx.go for more information on the
-	// graphics struct, and the initialization steps
+	// graphics struct, and the initialization steps.
+
+	// Endpoint is that we have a window object that we write to (and can
+	// close). And a renderer object, which does the writing.
 	graphics := graphicsx.Initialize_graphics()
+
 	var renderer = graphics.Renderer
 	var window = graphics.Window
 
@@ -39,7 +43,7 @@ func main() {
 	var cat_icon = graphics.Images[1]
 
 	// Get screen width so that we can position images against the right
-	// side.
+	// side. (You can change _ to screenHeight, if you want to use that too)
 	screenWidth, _ := window.GetSize()
 
 	// Create grid of rectangles. These will be drawn at random in black
@@ -49,13 +53,15 @@ func main() {
 	// Define variables outside of loop, so that we don't have to recreate
 	// them every iteration.
 	var event sdl.Event
+	var r_col int32
+	var r_row int32
 
 	// Define variables outside of loop that we want to increment/decrement
 	// every iteration
 	var angle = 0.0
 
 
-	// ========= Draw loop =========
+	// ========= Game loop =========
 
 	// This variable allows us to exit the otherwise endless loop when we want
 	var running = true
@@ -81,8 +87,8 @@ func main() {
 
 		// Draw squares randomly from premade rectangle grid
 		// See world/world.go for the code to make a rectangle
-		var r_col = rand.Intn(64)
-		var r_row = rand.Intn(48)
+		r_col = rand.Intn(64)
+		r_row = rand.Intn(48)
 		renderer.FillRect(&rect_grid[r_row][r_col])
 
 		// Draw little red icon at topright
@@ -94,39 +100,40 @@ func main() {
 		// 4: angle in degrees. 5: point which the image rotates around 
 		// 6: sdl.FLIP_NONE, sdl.FLIP_HORIZONTAL, sdl.SDL_FLIP_VERTICAL
 		// Want to combine flips? Use, for example: sdl.FLIP_HORIZONTAL | sdl.SDL_FLIP_VERTICAL
-		renderer.CopyEx(cat_icon.Texture, nil, &sdl.Rect{300, 200, cat_icon.Width, cat_icon.Height}, angle, nil, sdl.FLIP_HORIZONTAL)
-
+		renderer.CopyEx(cat_icon.Texture, nil, sdl.Rect{300, 200, cat_icon.Width, cat_icon.Height}, angle, nil, sdl.FLIP_HORIZONTAL)
 
 		// Draw Screen
-		//window.UpdateSurface()
-			
 		// The rects have been drawn, now it is time to tell the renderer to show
-		// what has been draw to the screen
+		// what has been draw to the screen. "Present them."
 		renderer.Present()
 
-
-		// Lag
+		// Sleep a little so that we go the speed that we want
 		time.Sleep(time.Millisecond * 3)
 
-		// handle events, in this case escape key and close window
+		// Handle events, in this case escape key and close window
 		for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch t := event.(type) {
-			// event that is sent when the window is closed
-			case *sdl.QuitEvent:
-				running = false
-			// keydown/keyup events
-			case *sdl.KeyboardEvent:
-				fmt.Printf("[%d ms] screen_width:%d Keyboard\ttype:%d\tsym:%c\tmodifiers:%d\tstate:%d\trepeat:%d\n",
-					t.Timestamp, screenWidth, t.Type, t.Keysym.Sym, t.Keysym.Mod, t.State, t.Repeat)
+				
+				// event that is sent when the window is closed
+				case *sdl.QuitEvent:
+					// setting running to false will end the game loop
+					running = false
+
+				// keydown/keyup events
+				case *sdl.KeyboardEvent:
+					// print keyevent information, and whatever you want to debug
+					fmt.Printf("[%d ms] screen_width:%d Keyboard\ttype:%d\tsym:%c\tmodifiers:%d\tstate:%d\trepeat:%d\n",
+						t.Timestamp, screenWidth, t.Type, t.Keysym.Sym, t.Keysym.Mod, t.State, t.Repeat)
 			}
 		}		
-	}
+	} 
 	
-	renderer.Destroy()
-	window.Destroy()
+	// ========= End of Game loop =========
 
 	// program is over, time to start shutting down. Keep in mind that sdl is written in C and does not have convenient
 	// garbage collection like Go does
-	
+
+	renderer.Destroy()
+	window.Destroy()
 	sdl.Quit()
 }
