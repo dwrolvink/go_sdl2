@@ -10,10 +10,7 @@ import (
 )
 
 // Import external packages
-// https://github.com/veandco/go-sdl2
-// https://markkeeley.xyz/2016/go-sdl2-lesson-1/
 import "github.com/veandco/go-sdl2/sdl"
-
 
 // subpackages
 import (
@@ -21,35 +18,84 @@ import (
 	"go_sdl2/world"
 )
 
+// This is the entry point for our app. Code execution starts here.
+
 func main() {
-	// Load SDL2, and get window and screen
+
+	// ========= Init step =========
+
+	// Load SDL2, and get window and renderer.
+	// See the file graphicsx/graphicsx.go for more information on the
+	// graphics struct, and the initialization steps
 	graphics := graphicsx.Initialize_graphics()
 	var renderer = graphics.Renderer
 	var window = graphics.Window
 
-	// Create grid of cells (just the rects for now)
+	// Load images into memory
+	graphics.LoadImage("src/images/icon.png") // --> graphics.Images[0]
+	graphics.LoadImage("src/images/cat.png")  // --> graphics.Images[1]
+
+	var label_icon = graphics.Images[0]
+	var cat_icon = graphics.Images[1]
+
+	// Get screen width so that we can position images against the right
+	// side.
+	screenWidth, _ := window.GetSize()
+
+	// Create grid of rectangles. These will be drawn at random in black
+	// in a later step.
 	var rect_grid = world.CreateRectGrid()
 
-	// Not sure if this line is strictly needed
+	// Define variables outside of loop, so that we don't have to recreate
+	// them every iteration.
 	var event sdl.Event
 
-	// Draw loop
+	// Define variables outside of loop that we want to increment/decrement
+	// every iteration
+	var angle = 0.0
+
+
+	// ========= Draw loop =========
+
+	// This variable allows us to exit the otherwise endless loop when we want
 	var running = true
+
+	// Endless loop unless running == false
+	// One iteration of this loop is one draw cycle.
 	for running	{
 
-		/* Clear the entire screen to white. */
-		// set color white
-		// red, green, blue, alpha (alpha determines opaque-ness - usually 255)
-		renderer.SetDrawColor(255, 255, 255, 255)
+		// Increment angle, and loop back when it makes a full circle
+		angle++
+		if (angle >= 360.0){
+			angle = 0.0
+		}
+
+		// set draw color to white
+		renderer.SetDrawColor(255, 255, 255, 255)                        // red, green, blue, alpha (alpha = transparency)
+
 		// clear the window with specified color - in this case white.
 		renderer.Clear()
 
-		// Draw squares randomly from grid
+		// now set it to black so that we can draw black rectangles
+		renderer.SetDrawColor(0, 0, 0, 255)
+
+		// Draw squares randomly from premade rectangle grid
+		// See world/world.go for the code to make a rectangle
 		var r_col = rand.Intn(64)
 		var r_row = rand.Intn(48)
-		//screenSurface.FillRect(&rect_grid[r_row][r_col], sdl.MapRGB(screenSurface.Format, 0, 0, 0))
-		renderer.SetDrawColor(0, 0, 0, 255)
 		renderer.FillRect(&rect_grid[r_row][r_col])
+
+		// Draw little red icon at topright
+		renderer.Copy(label_icon.Texture, nil, &sdl.Rect{screenWidth - label_icon.Width, 0, label_icon.Width, label_icon.Height})
+
+		// Draw rotating cat
+		// A different way of drawing onto the screen with more options.
+		// The first 3 parameters are the same as before. 
+		// 4: angle in degrees. 5: point which the image rotates around 
+		// 6: sdl.FLIP_NONE, sdl.FLIP_HORIZONTAL, sdl.SDL_FLIP_VERTICAL
+		// Want to combine flips? Use, for example: sdl.FLIP_HORIZONTAL | sdl.SDL_FLIP_VERTICAL
+		renderer.CopyEx(cat_icon.Texture, nil, &sdl.Rect{300, 200, cat_icon.Width, cat_icon.Height}, angle, nil, sdl.FLIP_HORIZONTAL)
+
 
 		// Draw Screen
 		//window.UpdateSurface()
@@ -60,7 +106,7 @@ func main() {
 
 
 		// Lag
-		time.Sleep(time.Millisecond * 1)
+		time.Sleep(time.Millisecond * 3)
 
 		// handle events, in this case escape key and close window
 		for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -70,8 +116,8 @@ func main() {
 				running = false
 			// keydown/keyup events
 			case *sdl.KeyboardEvent:
-				fmt.Printf("[%d ms] Keyboard\ttype:%d\tsym:%c\tmodifiers:%d\tstate:%d\trepeat:%d\n",
-					t.Timestamp, t.Type, t.Keysym.Sym, t.Keysym.Mod, t.State, t.Repeat)
+				fmt.Printf("[%d ms] screen_width:%d Keyboard\ttype:%d\tsym:%c\tmodifiers:%d\tstate:%d\trepeat:%d\n",
+					t.Timestamp, screenWidth, t.Type, t.Keysym.Sym, t.Keysym.Mod, t.State, t.Repeat)
 			}
 		}		
 	}
