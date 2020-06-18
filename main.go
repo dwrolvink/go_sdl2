@@ -10,7 +10,9 @@ import (
 )
 
 // Import external packages
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 // subpackages
 import (
@@ -44,7 +46,7 @@ func main() {
 
 	// Get screen width so that we can position images against the right
 	// side. (You can change _ to screenHeight, if you want to use that too)
-	screenWidth, _ := window.GetSize()
+	screenWidth, screenHeight := window.GetSize()
 
 	// Create grid of rectangles. These will be drawn at random in black
 	// in a later step.
@@ -56,9 +58,18 @@ func main() {
 	var r_col int
 	var r_row int
 
+	// Text vars
+	var hello_text_image graphicsx.Image
+	var debug_text_image graphicsx.Image
+	var hello_text_rect sdl.Rect
+	var debug_text_rect sdl.Rect
+	var show_debug_text = 0
+	var debug_text = ""
+
 	// Define variables outside of loop that we want to increment/decrement
 	// every iteration
 	var angle = 0.0
+
 
 
 	// ========= Game loop =========
@@ -100,7 +111,23 @@ func main() {
 		// 4: angle in degrees. 5: point which the image rotates around 
 		// 6: sdl.FLIP_NONE, sdl.FLIP_HORIZONTAL, sdl.SDL_FLIP_VERTICAL
 		// Want to combine flips? Use, for example: sdl.FLIP_HORIZONTAL | sdl.SDL_FLIP_VERTICAL
-		renderer.CopyEx(cat_icon.Texture, nil, &sdl.Rect{300, 200, cat_icon.Width, cat_icon.Height}, angle, nil, sdl.FLIP_HORIZONTAL)
+		var kitty_rect = &sdl.Rect{(screenWidth - cat_icon.Width)/2, 60, cat_icon.Width, cat_icon.Height}
+		renderer.CopyEx(cat_icon.Texture, nil, kitty_rect, angle, nil, sdl.FLIP_HORIZONTAL)
+
+		// Draw text
+		font_color := sdl.Color{255, 0, 0, 255}
+		debug_color := sdl.Color{0, 0, 0, 120}
+
+		hello_text_image = graphics.CreateTextImage("Kitty cat is testing your application", "SourceCodePro-Regular.ttf", 12, &font_color)
+		hello_text_rect = sdl.Rect{(screenWidth - hello_text_image.Width) / 2, screenHeight-100, hello_text_image.Width, hello_text_image.Height}
+		renderer.Copy(hello_text_image.Texture, nil, &hello_text_rect)
+
+		if (show_debug_text > 0){
+			show_debug_text--
+			debug_text_image = graphics.CreateTextImage(debug_text, "SourceCodePro-Regular.ttf", 12, &debug_color)
+			debug_text_rect = sdl.Rect{(screenWidth - debug_text_image.Width) / 2, screenHeight-80, debug_text_image.Width, debug_text_image.Height}
+			renderer.Copy(debug_text_image.Texture, nil, &debug_text_rect)	
+		}
 
 		// Draw Screen
 		// The rects have been drawn, now it is time to tell the renderer to show
@@ -110,7 +137,7 @@ func main() {
 		// Sleep a little so that we go the speed that we want
 		time.Sleep(time.Millisecond * 3)
 
-		// Handle events, in this case escape key and close window
+		// Handle events, in this case keyevents and close window
 		for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch t := event.(type) {
 				
@@ -122,8 +149,10 @@ func main() {
 				// keydown/keyup events
 				case *sdl.KeyboardEvent:
 					// print keyevent information, and whatever you want to debug
-					fmt.Printf("[%d ms] screen_width:%d Keyboard\ttype:%d\tsym:%c\tmodifiers:%d\tstate:%d\trepeat:%d\n",
+					debug_text = fmt.Sprintf("[%d ms] screen_width:%d Keyboard, type:%d, sym:%c, modifiers:%d, state:%d, repeat:%d",
 						t.Timestamp, screenWidth, t.Type, t.Keysym.Sym, t.Keysym.Mod, t.State, t.Repeat)
+					fmt.Println(debug_text)
+					show_debug_text = 300
 			}
 		}		
 	} 
@@ -132,8 +161,6 @@ func main() {
 
 	// program is over, time to start shutting down. Keep in mind that sdl is written in C and does not have convenient
 	// garbage collection like Go does
+	graphics.Destroy()
 
-	renderer.Destroy()
-	window.Destroy()
-	sdl.Quit()
 }

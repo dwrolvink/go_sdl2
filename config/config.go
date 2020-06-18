@@ -15,11 +15,15 @@ package config
 
 type Config struct {
 	ScreenTitle string
+	ScreenWidth int32
+	ScreenHeight int32
 }
 
 func GetConfig() Config {
 	return Config{
 		ScreenTitle: "SDL Test Application",
+		ScreenWidth: 640,
+		ScreenHeight: 280,   // trailing comma is required for some reason
 	}
 
 }

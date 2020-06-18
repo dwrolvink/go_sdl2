@@ -9,10 +9,10 @@ import (
 )
 
 // Import external packages
-// https://markkeeley.xyz/2016/go-sdl2-lesson-1/
 import (
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/img"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 // subpackages
@@ -48,6 +48,9 @@ type Graphics struct {
 //		var graph = Graphics{window, renderer, []{}}     
 //		graph.LoadImage("path/to/image.png")
 // []{} is an empty slice. We'll add images to it using this function.
+//
+// This function will take the path to the image, and output a custom Image struct.
+// The Texture in the Image struct is the thing that we can later draw on the window.
 
 func (this *Graphics) LoadImage(path string) {  
 	// Create a "surface" (this is needed to create the optimized "texture")
@@ -86,6 +89,64 @@ func (this *Graphics) LoadImage(path string) {
 }
 
 
+// To draw text to a screen, you first need to create a surface (render it into an image), and then a texture
+// because we use a renderer. This texture will be wrapped in a cutom Image struct like any other image.
+func (this *Graphics) CreateTextImage(text string, font_name string, font_size int, color *sdl.Color) Image {
+	var font *ttf.Font
+	var err error
+
+	// This function will create a blended font.
+	// For more options, see https://markkeeley.xyz/2016/go-sdl2-lesson-4/
+
+	// load font  (ex. "Roboto-Regular.ttf")
+	if font, err = ttf.OpenFont("src/fonts/"+font_name, font_size); err != nil {
+		fmt.Printf("Failed to open font: %s\n", err)
+		os.Exit(5)
+	}
+
+	// create surface
+	var textSurface *sdl.Surface
+	if textSurface, err = font.RenderUTF8Blended(text, *color); err != nil {
+		fmt.Printf("Failed to render text: %s\n", err)
+		os.Exit(5)
+	}
+
+	// create texture
+	var textTexture *sdl.Texture
+	if textTexture, err = this.Renderer.CreateTextureFromSurface(textSurface); err != nil {
+		fmt.Printf("Failed to create texture: %s\n", err)
+		os.Exit(5)
+	}
+
+	// Create Image struct
+	var image = Image{textTexture, textSurface.W, textSurface.H}
+
+	// Add to Images struct, so it will be cleaned up when we're done
+	this.Images = append(this.Images, image)
+
+	// clean up
+	textSurface.Free()
+	font.Close()
+
+	// return texture that we can draw like any other texture
+	return image
+}
+
+func (this *Graphics) DestroyImages() {  
+	for _, image := range this.Images {
+		image.Texture.Destroy()
+	}
+	this.Images = []Image{}
+}
+
+func (this *Graphics) Destroy() {  
+	this.DestroyImages()
+	this.Renderer.Destroy()
+	this.Window.Destroy()
+	sdl.Quit()	
+}
+
+
 // =====================================================================
 // 				Functions
 // =====================================================================
@@ -112,9 +173,15 @@ func Initialize_graphics() Graphics {
 	// Get config (for screentitle)
 	var cfg = config.GetConfig()
 
+	// Using the SDL_ttf library so need to initialize it before using it
+	if err := ttf.Init(); err != nil {
+		fmt.Printf("Failed to initialize TTF: %s\n", err)
+		os.Exit(5)
+	}
+
 	// try to create a window
 	window, err := sdl.CreateWindow(cfg.ScreenTitle, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-		640, 480, sdl.WINDOW_SHOWN)
+		cfg.ScreenWidth, cfg.ScreenHeight, sdl.WINDOW_SHOWN)
 	if err != nil {
 		fmt.Fprint(os.Stderr, "Failed to create renderer: %s\n", err)
 		os.Exit(2)
