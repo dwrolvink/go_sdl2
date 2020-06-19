@@ -16,15 +16,7 @@ This will differ per OS. I'll assume that you have followed those instructions
 In linux, you can simply search in the package manager for SDL, and install the
 needed packages. The names in the title are the same in almost every distribution of linux.
 
-### Set your Gopath & Download packages
-Go works in a slightly annoying way. It won't be able to find packages, unless they are
-in the GOPATH. I have opted to set my GOPATH to home/user/git/go. You can do the same
-by adding the following to your .bashrc (or .zshrc in my case):
-
-```bash
-export GOPATH=$HOME/git/go
-```
-
+### Download Go packages
 You can now download the external packages that we'll be using:
 ```bash
 go get github.com/veandco/go-sdl2/sdl
@@ -33,6 +25,8 @@ go get github.com/veandco/go-sdl2/ttf
 ```
 
 If you now look in your GOPATH, you'll find a pkg and a src folder.
+
+### Clone this repository to your computer
 Go to the folder where you want to clone this folder to. In my case:
 
 ```bash
