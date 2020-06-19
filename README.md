@@ -56,7 +56,7 @@ some seconds.
 To compile the application, and then run it, you can do the following:
 ```bash
 go build
-.\go_sdl2`
+.\go_sdl2
 ```
 
 To quickly build (and clean up the previous build before hand), you can use the
