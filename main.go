@@ -43,6 +43,8 @@ func main() {
 	graphics.LoadImage("src/images/icon.png") // --> graphics.Images[0]
 	graphics.LoadImage("src/images/cat.png")  // --> graphics.Images[1]
 
+	// Make some nice readable nicknames
+	// We'll draw these in the game loop later on.
 	var label_icon = graphics.Images[0]
 	var cat_icon = graphics.Images[1]
 
@@ -62,7 +64,9 @@ func main() {
 	var r_col int
 	var r_row int
 
-	// Text Objects
+	// Define Text Objects
+	// We define what we want the text to look like, and NewTextObject()
+	// will take care of building the TextObject for us.
 	var hello_text = text.NewTextObject(text.TextObjectConfig{
 		Graphics: &graphics, 
 		Text: "Kitty cat is testing your application",
@@ -70,7 +74,6 @@ func main() {
 		FontSize: 12,
 		Color: &sdl.Color{255, 0, 0, 255},
 	})
-
 	var debug_text = text.NewTextObject(text.TextObjectConfig{
 		Graphics: &graphics, 
 		Text: "Press a key to show keyevent",
@@ -79,16 +82,21 @@ func main() {
 		Color: &sdl.Color{0, 0, 0, 120},
 	})	
 
-
-	// Place the hello text message
+	
+	// Place the hello text message using a rect.
 	hello_text.Rect = &sdl.Rect{
 		(screenWidth - hello_text.Image.Width) / 2,      // x
 		screenHeight-100,                                // y
 		hello_text.Image.Width, hello_text.Image.Height,  // width, height
 	}
 
-	// Define placement function for the debug_text struct and assign it to 
-	// a parameter of the struct
+	// The hello text never changes, so we can just statically define a Rect.
+	// With the debug text though, the length of the text will change, and thus
+	// also the size of the resulting Rect. If we then draw it with the smaller
+	// Rect, the image will be squished. Also, because we want to horizontally 
+	// center the text, this will need to be recalculated too.
+	// To accommodate for this, we add a function to the struct that defines
+	// how to make a new Rect on the fly. 
 	debug_text.UpdateRect = func(textobj *text.TextObject) {  	
 		textobj.Rect = &sdl.Rect{
 			(screenWidth - textobj.Image.Width) / 2, 
@@ -96,9 +104,8 @@ func main() {
 			textobj.Image.Width, textobj.Image.Height,
 		}
 	}
-
-	// Now we can update the Rect whenever we change the text 
-	// (this will change the width, so also the Rect)
+	// Now we can update the Rect whenever we change the text and generate a new
+	// Image.
 	debug_text.UpdateRect(debug_text)
 	
 	// Define variables outside of loop that we want to increment/decrement
@@ -174,14 +181,16 @@ func main() {
 
 				// keydown/keyup events
 				case *sdl.KeyboardEvent:
+
 					// compile debug msg
 					msg := fmt.Sprintf("[%d ms] screen_width:%d Keyboard, type:%d, sym:%c, modifiers:%d, state:%d, repeat:%d",
 						t.Timestamp, screenWidth, t.Type, t.Keysym.Sym, t.Keysym.Mod, t.State, t.Repeat)
 				
 					// show on screen
-					debug_text.SetText(msg)
+					debug_text.SetText(msg) 
+					// The above command  will automatically generate a new Image.
+					// Because the size might be different, generate a new Rect.
 					debug_text.UpdateRect(debug_text)
-
 
 					// print in terminal
 					fmt.Println(msg)
