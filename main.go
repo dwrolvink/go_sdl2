@@ -18,12 +18,14 @@ import (
 import (
 	"go_sdl2/graphicsx"
 	"go_sdl2/world"
+	"go_sdl2/text"
 )
 
 // This is the entry point for our app. Code execution starts here.
 
 func main() {
 
+	
 	// ========= Init step =========
 
 	// Load SDL2, and get window and renderer.
@@ -44,8 +46,10 @@ func main() {
 	var label_icon = graphics.Images[0]
 	var cat_icon = graphics.Images[1]
 
-	// Get screen width so that we can position images against the right
-	// side. (You can change _ to screenHeight, if you want to use that too)
+
+	// Get screen dimensions so that we can position images relative to the corners.
+	// Note that the screen dimensions are dictated in config/config.go, this code
+	// is here to show you can get it from the window object too.
 	screenWidth, screenHeight := window.GetSize()
 
 	// Create grid of rectangles. These will be drawn at random in black
@@ -58,18 +62,48 @@ func main() {
 	var r_col int
 	var r_row int
 
-	// Text vars
-	var hello_text_image graphicsx.Image
-	var debug_text_image graphicsx.Image
-	var hello_text_rect sdl.Rect
-	var debug_text_rect sdl.Rect
-	var show_debug_text = 0
-	var debug_text = ""
+	// Text Objects
+	var hello_text = text.NewTextObject(text.TextObjectConfig{
+		Graphics: &graphics, 
+		Text: "Kitty cat is testing your application",
+		Font: "SourceCodePro-Regular.ttf", 
+		FontSize: 12,
+		Color: &sdl.Color{255, 0, 0, 255},
+	})
 
+	var debug_text = text.NewTextObject(text.TextObjectConfig{
+		Graphics: &graphics, 
+		Text: "Press a key to show keyevent",
+		Font: "SourceCodePro-Regular.ttf", 
+		FontSize: 12,
+		Color: &sdl.Color{0, 0, 0, 120},
+	})	
+
+
+	// Place the hello text message
+	hello_text.Rect = &sdl.Rect{
+		(screenWidth - hello_text.Image.Width) / 2,      // x
+		screenHeight-100,                                // y
+		hello_text.Image.Width, hello_text.Image.Height,  // width, height
+	}
+
+	// Define placement function for the debug_text struct and assign it to 
+	// a parameter of the struct
+	debug_text.UpdateRect = func(textobj *text.TextObject) {  	
+		textobj.Rect = &sdl.Rect{
+			(screenWidth - textobj.Image.Width) / 2, 
+			screenHeight - 80, 
+			textobj.Image.Width, textobj.Image.Height,
+		}
+	}
+
+	// Now we can update the Rect whenever we change the text 
+	// (this will change the width, so also the Rect)
+	debug_text.UpdateRect(debug_text)
+	
 	// Define variables outside of loop that we want to increment/decrement
 	// every iteration
-	var angle = 0.0
-
+	var angle = 0.0  // angle of the cat image
 
 
 	// ========= Game loop =========
@@ -77,11 +111,11 @@ func main() {
 	// This variable allows us to exit the otherwise endless loop when we want
 	var running = true
 
-	// Endless loop unless running == false
+	// Endless loop unless is running set to false
 	// One iteration of this loop is one draw cycle.
 	for running	{
 
-		// Increment angle, and loop back when it makes a full circle
+		// Increment angle of the cat, and loop back when it makes a full circle
 		angle++
 		if (angle >= 360.0){
 			angle = 0.0
@@ -96,7 +130,7 @@ func main() {
 		// now set it to black so that we can draw black rectangles
 		renderer.SetDrawColor(0, 0, 0, 255)
 
-		// Draw squares randomly from premade rectangle grid
+		// Draw squares randomly from the premade rectangle grid
 		// See world/world.go for the code to make a rectangle
 		r_col = rand.Intn(64)
 		r_row = rand.Intn(48)
@@ -114,20 +148,12 @@ func main() {
 		var kitty_rect = &sdl.Rect{(screenWidth - cat_icon.Width)/2, 60, cat_icon.Width, cat_icon.Height}
 		renderer.CopyEx(cat_icon.Texture, nil, kitty_rect, angle, nil, sdl.FLIP_HORIZONTAL)
 
-		// Draw text
-		font_color := sdl.Color{255, 0, 0, 255}
-		debug_color := sdl.Color{0, 0, 0, 120}
+		// Draw Hello text
+		renderer.Copy(hello_text.Image.Texture, nil, hello_text.Rect)
 
-		hello_text_image = graphics.CreateTextImage("Kitty cat is testing your application", "SourceCodePro-Regular.ttf", 12, &font_color)
-		hello_text_rect = sdl.Rect{(screenWidth - hello_text_image.Width) / 2, screenHeight-100, hello_text_image.Width, hello_text_image.Height}
-		renderer.Copy(hello_text_image.Texture, nil, &hello_text_rect)
-
-		if (show_debug_text > 0){
-			show_debug_text--
-			debug_text_image = graphics.CreateTextImage(debug_text, "SourceCodePro-Regular.ttf", 12, &debug_color)
-			debug_text_rect = sdl.Rect{(screenWidth - debug_text_image.Width) / 2, screenHeight-80, debug_text_image.Width, debug_text_image.Height}
-			renderer.Copy(debug_text_image.Texture, nil, &debug_text_rect)	
-		}
+		// Draw debug text
+		renderer.Copy(debug_text.Image.Texture, nil, debug_text.Rect)	
+		
 
 		// Draw Screen
 		// The rects have been drawn, now it is time to tell the renderer to show
@@ -148,11 +174,17 @@ func main() {
 
 				// keydown/keyup events
 				case *sdl.KeyboardEvent:
-					// print keyevent information, and whatever you want to debug
-					debug_text = fmt.Sprintf("[%d ms] screen_width:%d Keyboard, type:%d, sym:%c, modifiers:%d, state:%d, repeat:%d",
+					// compile debug msg
+					msg := fmt.Sprintf("[%d ms] screen_width:%d Keyboard, type:%d, sym:%c, modifiers:%d, state:%d, repeat:%d",
 						t.Timestamp, screenWidth, t.Type, t.Keysym.Sym, t.Keysym.Mod, t.State, t.Repeat)
-					fmt.Println(debug_text)
-					show_debug_text = 300
+				
+					// show on screen
+					debug_text.SetText(msg)
+					debug_text.UpdateRect(debug_text)
+
+
+					// print in terminal
+					fmt.Println(msg)
 			}
 		}		
 	} 
