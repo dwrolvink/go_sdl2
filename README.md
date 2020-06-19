@@ -1,9 +1,11 @@
 # go_sdl2
 Example app to explain SDL2 using Go. 
 
-In this app I make a screen, draw colored squares, draw pictures, draw text, and read out events.
+In this app I make a screen, draw colored squares, draw pictures, move pictures around, draw text in a way that the text content can be changed on the fly, and read out events like keyboard events.
 
-Most of this app is based on this tutorial series: https://markkeeley.xyz/2016/go-sdl2-lesson-1/ most of the added comments will assume you have followed Mark's tutorial first.
+It is, in short, an app to showcase what you can do and how to do it.
+
+Most of this app is based on this tutorial series: https://markkeeley.xyz/2016/go-sdl2-lesson-1/ most of the added comments will assume you have followed Mark's tutorial first, and I deeply recommend that you do start there.
 
 SDL wrapper: https://github.com/veandco/go-sdl2
 
@@ -12,7 +14,7 @@ SDL wrapper: https://github.com/veandco/go-sdl2
 
 # Installation
 ### Install Go
-This will differ per OS. I'll assume that you have followed those instructions
+This will differ per OS. Just follow the general instructions for your OS.
 
 ### Make sure sdl2, sld2_image, and sdl2_ttf are installed
 In linux, you can simply search in the package manager for SDL, and install the
