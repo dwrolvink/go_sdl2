@@ -1,9 +1,11 @@
 # go_sdl2
 Example app to explain SDL2 using Go. 
 
+![header](https://raw.githubusercontent.com/dwrolvink/go_sdl2/master/src/images/github_picture.png)
+
 In this app I make a screen, draw colored squares, draw pictures, move pictures around, draw text in a way that the text content can be changed on the fly, and read out events like keyboard events.
 
-It is, in short, an app to showcase what you can do and how to do it.
+It is, in short, an app to showcase what you can do and how to do it. With copious amounts of comments to help out to get what's going on.
 
 Most of this app is based on this tutorial series: https://markkeeley.xyz/2016/go-sdl2-lesson-1/ most of the added comments will assume you have followed Mark's tutorial first, and I deeply recommend that you do start there.
 
