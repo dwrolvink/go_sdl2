@@ -3,7 +3,7 @@ Example app to explain SDL2 using Go.
 
 In this app I make a screen, draw colored squares, draw pictures, draw text, and read out events.
 
-Most of this app is based on this tutorial series: https://markkeeley.xyz/2016/go-sdl2-lesson-1/
+Most of this app is based on this tutorial series: https://markkeeley.xyz/2016/go-sdl2-lesson-1/ most of the added comments will assume you have followed Mark's tutorial first.
 
 SDL wrapper: https://github.com/veandco/go-sdl2
 
